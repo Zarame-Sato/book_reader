@@ -14,7 +14,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'icons/icon.svg'],
       manifest: {
         name: 'book_reader',
         short_name: 'book_reader',
@@ -26,18 +26,17 @@ export default defineConfig({
         start_url: BASE,
         scope: BASE,
         icons: [
-          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           {
-            src: 'icons/icon-maskable-512.png',
-            sizes: '512x512',
-            type: 'image/png',
+            src: 'icons/icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
             purpose: 'maskable',
           },
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2,mjs}'],
         // Drive API responses are authenticated — never cache them in the SW.
         navigateFallbackDenylist: [/^https:\/\/www\.googleapis\.com/],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
