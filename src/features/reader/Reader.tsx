@@ -1,6 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpenText, ChevronLeft } from 'lucide-react';
+import { AnnotationOverlay } from '@/features/annotation/AnnotationOverlay';
+import { AnnotationToolbar } from '@/features/annotation/AnnotationToolbar';
+import { useAnnotationStore } from '@/features/annotation/annotationStore';
+import type { SidecarMeta } from '@/features/annotation/annotationTypes';
+import { useAnnotations } from '@/features/annotation/useAnnotations';
 import { getBookRecord, updateBookRecord } from '@/features/library/booksDb';
 import { generateCover } from '@/features/library/coverThumbnail';
 import { PageView, type TapZone } from './PageView';
@@ -21,8 +26,23 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
   const index = useReaderStore((s) => s.index);
   const pageCount = useReaderStore((s) => s.pageCount);
   const direction = useReaderStore((s) => s.direction);
+  const tool = useAnnotationStore((s) => s.tool);
   const [uiVisible, setUiVisible] = useState(true);
   const [ready, setReady] = useState(false);
+  const [modifiedTime, setModifiedTime] = useState<string | null>(null);
+
+  const meta = useMemo<SidecarMeta>(
+    () => ({
+      bookFileId: fileId,
+      bookFileName: book.name,
+      bookModifiedTime: modifiedTime,
+      bookKind: book.kind,
+      pageCount: source.pageCount,
+    }),
+    [fileId, book.name, book.kind, source.pageCount, modifiedTime],
+  );
+
+  useAnnotations(fileId, meta);
 
   // Restore reading state from the stored book record.
   useEffect(() => {
@@ -30,6 +50,7 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
     setReady(false);
     void getBookRecord(fileId).then((record) => {
       if (!active) return;
+      setModifiedTime(record?.modifiedTime ?? null);
       useReaderStore.getState().initBook({
         fileId,
         index: record?.lastReadPage ?? 0,
@@ -109,13 +130,27 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
 
   return (
     <div className="fixed inset-0 bg-stone-950">
-      <PageView source={source} index={index} onZoneTap={handleZoneTap} />
+      <PageView
+        source={source}
+        index={index}
+        onZoneTap={handleZoneTap}
+        zonesDisabled={tool !== 'hand'}
+        gesturesEnabled={tool === 'hand'}
+        renderOverlay={(page) => (
+          <AnnotationOverlay
+            pageIndex={index}
+            pageWidth={page.width}
+            pageHeight={page.height}
+          />
+        )}
+      />
       <ReaderToolbar
         visible={uiVisible}
         title={book.name}
         direction={direction}
         onToggleDirection={toggleDirection}
       />
+      <AnnotationToolbar visible={uiVisible} pageIndex={index} />
       <PageNavigator
         visible={uiVisible}
         index={index}

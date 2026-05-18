@@ -20,8 +20,10 @@ interface PageViewProps {
   onZoneTap?: (zone: TapZone) => void;
   /** Disables tap zones (e.g. while an annotation tool is active). */
   zonesDisabled?: boolean;
-  /** Overlay layer (annotation), placed in the page's coordinate space. */
-  children?: ReactNode;
+  /** When false, pan/pinch gestures are disabled (annotation drawing mode). */
+  gesturesEnabled?: boolean;
+  /** Overlay layer rendered in the page's coordinate space (annotations). */
+  renderOverlay?: (page: { width: number; height: number }) => ReactNode;
 }
 
 export function PageView({
@@ -29,7 +31,8 @@ export function PageView({
   index,
   onZoneTap,
   zonesDisabled,
-  children,
+  gesturesEnabled = true,
+  renderOverlay,
 }: PageViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -124,8 +127,13 @@ export function PageView({
     {
       target: containerRef,
       eventOptions: { passive: false },
-      drag: { from: () => [tx.current, ty.current], filterTaps: true },
+      drag: {
+        enabled: gesturesEnabled,
+        from: () => [tx.current, ty.current],
+        filterTaps: true,
+      },
       pinch: {
+        enabled: gesturesEnabled,
         from: () => [zoom.current, 0],
         scaleBounds: { min: MIN_ZOOM, max: MAX_ZOOM },
       },
@@ -150,7 +158,7 @@ export function PageView({
             className={pageSize ? 'block size-full shadow-2xl shadow-black/40' : 'hidden'}
             style={pageSize ?? undefined}
           />
-          {pageSize && children}
+          {pageSize && renderOverlay?.(pageSize)}
         </div>
       </div>
 
