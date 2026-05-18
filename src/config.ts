@@ -12,6 +12,15 @@ export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 /** Google Identity Services client script. */
 export const GIS_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 
+/**
+ * Default OAuth Client ID — the same web client used by the companion
+ * md-viewer-pwa app. A Client ID is not a secret; reusing it means the
+ * deployed app (same `github.io` origin) needs no Google Cloud setup.
+ * Users can still override it in Settings to point at their own project.
+ */
+export const DEFAULT_OAUTH_CLIENT_ID =
+  '975677173358-i3rdoqc0je229uobr9cqq1sb63ett2pp.apps.googleusercontent.com';
+
 /** Drive REST API base URLs. */
 export const DRIVE_API = 'https://www.googleapis.com/drive/v3';
 export const DRIVE_UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3';

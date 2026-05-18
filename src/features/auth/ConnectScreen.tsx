@@ -86,10 +86,13 @@ export function ConnectScreen() {
 
         <details className="mt-4 rounded-2xl border border-stone-200 bg-white/60 px-5 py-3 text-sm dark:border-stone-800 dark:bg-stone-900/60">
           <summary className="flex cursor-pointer items-center justify-between font-medium text-stone-700 dark:text-stone-200">
-            クライアント ID の取得方法
+            独自の Client ID を使う場合（通常は不要）
             <ChevronDown size={16} className="text-stone-400" />
           </summary>
-          <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-stone-600 dark:text-stone-400">
+          <p className="mt-3 text-stone-600 dark:text-stone-400">
+            既定の Client ID で接続できます。別の Google プロジェクトを使いたい場合のみ、次の手順で取得して上で差し替えてください。
+          </p>
+          <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-stone-600 dark:text-stone-400">
             <li>
               Google Cloud Console でプロジェクトを作成し、「Google Drive API」を有効化します。
             </li>

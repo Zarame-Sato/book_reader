@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { STORAGE_KEYS } from '@/config';
+import { DEFAULT_OAUTH_CLIENT_ID, STORAGE_KEYS } from '@/config';
 
 export type AuthStatus = 'idle' | 'connecting' | 'connected' | 'error';
 
@@ -20,7 +20,7 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  clientId: localStorage.getItem(STORAGE_KEYS.oauthClientId),
+  clientId: localStorage.getItem(STORAGE_KEYS.oauthClientId) ?? DEFAULT_OAUTH_CLIENT_ID,
   accessToken: null,
   expiresAt: null,
   status: 'idle',
