@@ -1,7 +1,25 @@
 import { Link } from 'react-router-dom';
-import { BookText, ChevronLeft } from 'lucide-react';
+import { BookText, ChevronLeft, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { useSyncStore } from '@/features/annotation/syncStore';
 import { cn } from '@/lib/cn';
 import type { ReadingDirection } from '@/lib/idb';
+
+function SyncIndicator() {
+  const status = useSyncStore((s) => s.status);
+  if (status === 'idle') return null;
+  if (status === 'syncing') {
+    return <RefreshCw size={15} className="shrink-0 animate-spin text-stone-400" />;
+  }
+  if (status === 'offline') {
+    return (
+      <span className="flex shrink-0 items-center gap-1 text-xs text-amber-400">
+        <CloudOff size={15} />
+        未同期
+      </span>
+    );
+  }
+  return <Cloud size={15} className="shrink-0 text-stone-400" />;
+}
 
 interface ReaderToolbarProps {
   visible: boolean;
@@ -32,6 +50,7 @@ export function ReaderToolbar({
         <ChevronLeft size={20} />
       </Link>
       <span className="min-w-0 flex-1 truncate text-sm font-medium">{title}</span>
+      <SyncIndicator />
       <button
         type="button"
         onClick={onToggleDirection}

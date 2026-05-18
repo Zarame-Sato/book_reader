@@ -1,4 +1,4 @@
-import { DRIVE_API } from '@/config';
+import { DRIVE_API, DRIVE_UPLOAD_API } from '@/config';
 import { getValidAccessToken, requestAccessToken } from '@/features/auth/gisAuth';
 import { useAuthStore } from '@/features/auth/authStore';
 import type { DriveFile, DriveFileList } from './driveTypes';
@@ -96,4 +96,70 @@ export async function downloadFile(
     onProgress(loaded, total);
   }
   return new Blob(chunks);
+}
+
+/** Escapes a value for use inside a Drive `q` query string literal. */
+function escapeQuery(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+/** Finds a file by exact name within a folder, or null if absent. */
+export async function findFileInFolder(
+  name: string,
+  parentId: string,
+): Promise<DriveFile | null> {
+  const params = new URLSearchParams({
+    q: `name='${escapeQuery(name)}' and '${parentId}' in parents and trashed=false`,
+    fields: 'files(id,name,modifiedTime)',
+    spaces: 'drive',
+    pageSize: '5',
+    supportsAllDrives: 'true',
+    includeItemsFromAllDrives: 'true',
+  });
+  const res = await driveFetch(`${DRIVE_API}/files?${params.toString()}`);
+  const list = (await res.json()) as DriveFileList;
+  return list.files[0] ?? null;
+}
+
+/** Creates a new JSON file via multipart upload. */
+export async function createJsonFile(
+  name: string,
+  parents: string[],
+  content: unknown,
+): Promise<DriveFile> {
+  const boundary = `bookreader-${crypto.randomUUID()}`;
+  const metadata = { name, parents, mimeType: 'application/json' };
+  const body =
+    `--${boundary}\r\n` +
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+    `${JSON.stringify(metadata)}\r\n` +
+    `--${boundary}\r\n` +
+    'Content-Type: application/json\r\n\r\n' +
+    `${JSON.stringify(content)}\r\n` +
+    `--${boundary}--`;
+  const res = await driveFetch(
+    `${DRIVE_UPLOAD_API}/files?uploadType=multipart&fields=id,name,modifiedTime&supportsAllDrives=true`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+      body,
+    },
+  );
+  return (await res.json()) as DriveFile;
+}
+
+/** Replaces a file's content with a JSON payload. */
+export async function updateJsonFile(
+  fileId: string,
+  content: unknown,
+): Promise<DriveFile> {
+  const res = await driveFetch(
+    `${DRIVE_UPLOAD_API}/files/${encodeURIComponent(fileId)}?uploadType=media&fields=id,name,modifiedTime&supportsAllDrives=true`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(content),
+    },
+  );
+  return (await res.json()) as DriveFile;
 }
