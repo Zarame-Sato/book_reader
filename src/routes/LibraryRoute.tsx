@@ -12,8 +12,8 @@ export default function LibraryRoute() {
 
 function LibraryHome() {
   return (
-    <div className="min-h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200/70 bg-white/80 px-5 py-3 backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/80">
+    <div className="min-h-full bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-200/70 bg-white/80 px-5 py-3 backdrop-blur dark:border-stone-800/70 dark:bg-stone-900/80">
         <div className="flex items-center gap-2.5">
           <span className="grid size-9 place-items-center rounded-xl bg-accent-600 text-white">
             <Library size={20} />
@@ -22,7 +22,7 @@ function LibraryHome() {
         </div>
         <Link
           to="/settings"
-          className="grid size-9 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          className="grid size-9 place-items-center rounded-xl text-stone-500 transition hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
           aria-label="設定"
         >
           <Settings size={20} />

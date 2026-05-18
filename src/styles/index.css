@@ -8,17 +8,22 @@
     'Inter', ui-sans-serif, system-ui, -apple-system, 'Hiragino Kaku Gothic ProN',
     'Noto Sans JP', sans-serif;
 
-  /* Brand accent ramp */
-  --color-accent-50: #eef2ff;
-  --color-accent-100: #e0e7ff;
-  --color-accent-200: #c7d2fe;
-  --color-accent-300: #a5b4fc;
-  --color-accent-400: #818cf8;
-  --color-accent-500: #6366f1;
-  --color-accent-600: #4f46e5;
-  --color-accent-700: #4338ca;
-  --color-accent-800: #3730a3;
-  --color-accent-900: #312e81;
+  /* Calm teal accent — sea & pool tones, for a relaxed resort feel */
+  --color-accent-50: #f0faf8;
+  --color-accent-100: #d8f1ed;
+  --color-accent-200: #b3e3db;
+  --color-accent-300: #84cec3;
+  --color-accent-400: #54b1a6;
+  --color-accent-500: #389488;
+  --color-accent-600: #2c776e;
+  --color-accent-700: #275f59;
+  --color-accent-800: #234d49;
+  --color-accent-900: #20413e;
+  --color-accent-950: #0f2624;
+
+  /* Warm the neutral ramp slightly for a soft, paper-like surface */
+  --color-stone-50: #faf8f4;
+  --color-stone-100: #f3f0ea;
 }
 
 :root {
@@ -49,6 +54,6 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in oklab, currentColor 22%, transparent);
+  background: color-mix(in oklab, currentColor 18%, transparent);
   border-radius: 9999px;
 }

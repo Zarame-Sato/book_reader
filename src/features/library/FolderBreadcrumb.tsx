@@ -12,7 +12,7 @@ export function FolderBreadcrumb() {
         const isCurrent = i === path.length - 1;
         return (
           <span key={crumb.id} className="flex items-center gap-0.5">
-            {i > 0 && <ChevronRight size={14} className="shrink-0 text-slate-400" />}
+            {i > 0 && <ChevronRight size={14} className="shrink-0 text-stone-400" />}
             <button
               type="button"
               onClick={() => goToCrumb(i)}
@@ -20,8 +20,8 @@ export function FolderBreadcrumb() {
               className={cn(
                 'rounded-md px-1.5 py-0.5 transition',
                 isCurrent
-                  ? 'font-semibold text-slate-900 dark:text-white'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800',
+                  ? 'font-semibold text-stone-900 dark:text-white'
+                  : 'text-stone-500 hover:bg-stone-100 hover:text-stone-800 dark:hover:bg-stone-800',
               )}
             >
               {crumb.name}

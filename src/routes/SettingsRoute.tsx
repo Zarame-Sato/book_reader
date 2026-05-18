@@ -24,11 +24,11 @@ export default function SettingsRoute() {
   };
 
   return (
-    <div className="min-h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="flex items-center gap-2 border-b border-slate-200/70 px-5 py-3 dark:border-slate-800/70">
+    <div className="min-h-full bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+      <header className="flex items-center gap-2 border-b border-stone-200/70 px-5 py-3 dark:border-stone-800/70">
         <Link
           to="/"
-          className="grid size-9 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="grid size-9 place-items-center rounded-xl text-stone-500 transition hover:bg-stone-100 dark:hover:bg-stone-800"
           aria-label="戻る"
         >
           <ChevronLeft size={20} />
@@ -37,8 +37,8 @@ export default function SettingsRoute() {
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-6 px-5 py-8">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">テーマ</h2>
+        <section className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+          <h2 className="text-sm font-semibold text-stone-700 dark:text-stone-200">テーマ</h2>
           <div className="mt-3 grid grid-cols-3 gap-2">
             {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
               <button
@@ -49,7 +49,7 @@ export default function SettingsRoute() {
                   'flex flex-col items-center gap-1.5 rounded-xl border py-3 text-xs font-medium transition',
                   theme === value
                     ? 'border-accent-500 bg-accent-50 text-accent-700 dark:bg-accent-950/40 dark:text-accent-300'
-                    : 'border-slate-200 text-slate-500 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600',
+                    : 'border-stone-200 text-stone-500 hover:border-stone-300 dark:border-stone-700 dark:hover:border-stone-600',
                 )}
               >
                 <Icon size={18} />
@@ -59,11 +59,11 @@ export default function SettingsRoute() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+        <section className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+          <h2 className="text-sm font-semibold text-stone-700 dark:text-stone-200">
             Google アカウント
           </h2>
-          <p className="mt-2 break-all text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-2 break-all text-xs text-stone-500 dark:text-stone-400">
             クライアント ID: {clientId ?? '未設定'}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">

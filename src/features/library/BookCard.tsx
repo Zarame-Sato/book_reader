@@ -53,7 +53,7 @@ export function BookCard({ id, name, kind, onOpen }: BookCardProps) {
       onClick={onOpen}
       className="group flex flex-col gap-2 text-left"
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-xl shadow-sm ring-1 ring-slate-200/70 transition group-hover:-translate-y-1 group-hover:shadow-lg dark:ring-slate-800">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-xl shadow-sm ring-1 ring-stone-200/70 transition group-hover:-translate-y-1 group-hover:shadow-lg dark:ring-stone-800">
         {cover ? (
           <img src={cover} alt="" className="size-full object-cover" />
         ) : (
@@ -78,7 +78,7 @@ export function BookCard({ id, name, kind, onOpen }: BookCardProps) {
           </span>
         )}
       </div>
-      <span className="line-clamp-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+      <span className="line-clamp-2 text-xs font-medium text-stone-700 dark:text-stone-300">
         {name}
       </span>
     </button>
@@ -97,14 +97,14 @@ export function FolderCard({ name, onOpen }: FolderCardProps) {
       onClick={onOpen}
       className="group flex flex-col gap-2 text-left"
     >
-      <div className="grid aspect-[3/4] place-items-center rounded-xl border border-slate-200 bg-slate-100 transition group-hover:-translate-y-1 group-hover:border-accent-300 group-hover:bg-accent-50 dark:border-slate-800 dark:bg-slate-800/60 dark:group-hover:bg-slate-800">
+      <div className="grid aspect-[3/4] place-items-center rounded-xl border border-stone-200 bg-stone-100 transition group-hover:-translate-y-1 group-hover:border-accent-300 group-hover:bg-accent-50 dark:border-stone-800 dark:bg-stone-800/60 dark:group-hover:bg-stone-800">
         <FolderClosed
           size={44}
           strokeWidth={1.5}
-          className="text-slate-400 group-hover:text-accent-500"
+          className="text-stone-400 group-hover:text-accent-500"
         />
       </div>
-      <span className="line-clamp-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+      <span className="line-clamp-2 text-xs font-medium text-stone-700 dark:text-stone-300">
         {name}
       </span>
     </button>

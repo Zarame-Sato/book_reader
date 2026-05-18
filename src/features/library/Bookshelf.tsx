@@ -38,7 +38,7 @@ export function Bookshelf() {
       <FolderBreadcrumb />
 
       {isLoading && (
-        <div className="flex items-center justify-center gap-2 py-24 text-sm text-slate-500">
+        <div className="flex items-center justify-center gap-2 py-24 text-sm text-stone-500">
           <Loader2 size={18} className="animate-spin" />
           Google Drive を読み込み中…
         </div>
@@ -52,8 +52,8 @@ export function Bookshelf() {
 
       {isEmpty && (
         <div className="flex flex-col items-center gap-2 py-24 text-center">
-          <BookMarked size={32} className="text-slate-300 dark:text-slate-600" />
-          <p className="text-sm text-slate-500">このフォルダに書籍はありません</p>
+          <BookMarked size={32} className="text-stone-300 dark:text-stone-600" />
+          <p className="text-sm text-stone-500">このフォルダに書籍はありません</p>
         </div>
       )}
 
