@@ -4,7 +4,8 @@ export type Theme = 'light' | 'dark' | 'system';
 
 export function getStoredTheme(): Theme {
   const v = localStorage.getItem(STORAGE_KEYS.theme);
-  return v === 'light' || v === 'dark' || v === 'system' ? v : 'system';
+  // Default to light — a bright, resort-like reading mood.
+  return v === 'light' || v === 'dark' || v === 'system' ? v : 'light';
 }
 
 function resolve(theme: Theme): 'light' | 'dark' {

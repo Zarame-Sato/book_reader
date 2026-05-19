@@ -129,7 +129,7 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-stone-950">
+    <div className="fixed inset-0 bg-stone-200 dark:bg-stone-950">
       <PageView
         source={source}
         index={index}
@@ -166,13 +166,13 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
 
 function ReaderLoading({ progress }: { progress: number }) {
   return (
-    <div className="fixed inset-0 grid place-items-center bg-stone-950 text-stone-300">
+    <div className="fixed inset-0 grid place-items-center bg-stone-100 text-stone-600 dark:bg-stone-950 dark:text-stone-300">
       <div className="flex w-64 flex-col items-center gap-4">
-        <BookOpenText size={34} className="text-accent-400" />
+        <BookOpenText size={34} className="text-accent-500" />
         <p className="text-sm">書籍を読み込み中…</p>
-        <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-stone-300 dark:bg-white/10">
           <div
-            className="h-full rounded-full bg-accent-400 transition-all duration-200"
+            className="h-full rounded-full bg-accent-500 transition-all duration-200"
             style={{ width: `${Math.round(progress * 100)}%` }}
           />
         </div>
@@ -183,12 +183,12 @@ function ReaderLoading({ progress }: { progress: number }) {
 
 function ReaderError({ message }: { message: string }) {
   return (
-    <div className="fixed inset-0 grid place-items-center bg-stone-950 px-6 text-center">
+    <div className="fixed inset-0 grid place-items-center bg-stone-100 px-6 text-center dark:bg-stone-950">
       <div className="flex flex-col items-center gap-3">
-        <p className="max-w-sm text-sm text-stone-300">{message}</p>
+        <p className="max-w-sm text-sm text-stone-600 dark:text-stone-300">{message}</p>
         <Link
           to="/"
-          className="inline-flex items-center gap-1 text-sm text-accent-400 transition hover:text-accent-300"
+          className="inline-flex items-center gap-1 text-sm text-accent-600 transition hover:text-accent-500 dark:text-accent-400"
         >
           <ChevronLeft size={16} />
           本棚へ戻る
