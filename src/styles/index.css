@@ -10,24 +10,36 @@
 
   /* Calm teal accent — sea & pool tones, for a relaxed resort feel */
   --color-accent-50: #f0faf8;
-  --color-accent-100: #d8f1ed;
-  --color-accent-200: #b3e3db;
-  --color-accent-300: #84cec3;
-  --color-accent-400: #54b1a6;
-  --color-accent-500: #389488;
-  --color-accent-600: #2c776e;
-  --color-accent-700: #275f59;
-  --color-accent-800: #234d49;
-  --color-accent-900: #20413e;
-  --color-accent-950: #0f2624;
+  --color-accent-100: #d6f1ec;
+  --color-accent-200: #b0e3da;
+  --color-accent-300: #80cec2;
+  --color-accent-400: #4fb3a6;
+  --color-accent-500: #2f9789;
+  --color-accent-600: #237b70;
+  --color-accent-700: #20635b;
+  --color-accent-800: #1f504a;
+  --color-accent-900: #1d423e;
+  --color-accent-950: #0e2624;
 
-  /* Warm the neutral ramp slightly for a soft, paper-like surface */
-  --color-stone-50: #faf8f4;
-  --color-stone-100: #f3f0ea;
+  /* Warm, paper-like neutrals */
+  --color-stone-50: #faf8f3;
+  --color-stone-100: #f3eee4;
+
+  /* Light-oak wood tones for the bookshelf */
+  --color-wood-100: #f3e7d0;
+  --color-wood-200: #e7d3b1;
+  --color-wood-300: #d8bd8f;
+  --color-wood-400: #c7a577;
+  --color-wood-500: #ab8a5e;
+  --color-wood-600: #8a6e49;
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 html,
@@ -54,6 +66,6 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in oklab, currentColor 18%, transparent);
+  background: color-mix(in oklab, currentColor 16%, transparent);
   border-radius: 9999px;
 }

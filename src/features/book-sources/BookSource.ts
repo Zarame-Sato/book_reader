@@ -24,6 +24,9 @@ export interface BookSource {
    */
   renderPage(index: number, canvas: HTMLCanvasElement): Promise<PageInfo>;
 
+  /** Optionally renders a page ahead of time to speed up navigation. */
+  prefetch?(index: number): void;
+
   /** Releases decoded resources. */
   dispose(): void;
 }

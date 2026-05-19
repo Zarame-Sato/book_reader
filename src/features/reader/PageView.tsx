@@ -81,6 +81,8 @@ export function PageView({
         ty.current = 0;
         setPageSize({ width: info.width, height: info.height });
         setRendering(false);
+        source.prefetch?.(index + 1);
+        source.prefetch?.(index - 1);
       })
       .catch(() => {
         if (!cancelled) {
@@ -145,7 +147,7 @@ export function PageView({
   return (
     <div
       ref={containerRef}
-      className="touch-none-area relative size-full overflow-hidden bg-stone-950 select-none"
+      className="touch-none-area relative size-full overflow-hidden bg-stone-200 select-none dark:bg-stone-950"
     >
       <div className="absolute inset-0 flex items-center justify-center">
         <div
@@ -186,13 +188,13 @@ export function PageView({
       )}
 
       {rendering && (
-        <div className="absolute inset-0 grid place-items-center bg-stone-950/50">
-          <Spinner size={28} className="text-white/70" />
+        <div className="absolute inset-0 grid place-items-center bg-stone-200/55 dark:bg-stone-950/55">
+          <Spinner size={28} className="text-stone-500 dark:text-white/70" />
         </div>
       )}
       {failed && (
         <div className="absolute inset-0 grid place-items-center">
-          <p className="text-sm text-stone-400">このページを表示できませんでした</p>
+          <p className="text-sm text-stone-500">このページを表示できませんでした</p>
         </div>
       )}
     </div>

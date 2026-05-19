@@ -12,13 +12,13 @@ function SyncIndicator() {
   }
   if (status === 'offline') {
     return (
-      <span className="flex shrink-0 items-center gap-1 text-xs text-amber-400">
+      <span className="flex shrink-0 items-center gap-1 text-xs text-amber-500 dark:text-amber-400">
         <CloudOff size={15} />
         未同期
       </span>
     );
   }
-  return <Cloud size={15} className="shrink-0 text-stone-400" />;
+  return <Cloud size={15} className="shrink-0 text-accent-500" />;
 }
 
 interface ReaderToolbarProps {
@@ -38,13 +38,14 @@ export function ReaderToolbar({
     <div
       className={cn(
         'absolute inset-x-0 top-0 z-20 flex items-center gap-3 px-3 py-2.5',
-        'bg-stone-900/85 text-stone-100 backdrop-blur-md transition-all duration-300',
+        'border-b border-stone-200/60 bg-stone-50/90 text-stone-700 backdrop-blur-md',
+        'transition-all duration-300 dark:border-stone-800/60 dark:bg-stone-900/85 dark:text-stone-100',
         visible ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0',
       )}
     >
       <Link
         to="/"
-        className="grid size-9 shrink-0 place-items-center rounded-lg transition hover:bg-white/10"
+        className="grid size-9 shrink-0 place-items-center rounded-lg transition hover:bg-stone-200/70 dark:hover:bg-white/10"
         aria-label="本棚へ戻る"
       >
         <ChevronLeft size={20} />
@@ -54,7 +55,7 @@ export function ReaderToolbar({
       <button
         type="button"
         onClick={onToggleDirection}
-        className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-medium transition hover:bg-white/15"
+        className="flex shrink-0 items-center gap-1.5 rounded-lg bg-stone-200/80 px-2.5 py-1.5 text-xs font-medium transition hover:bg-stone-300/80 dark:bg-white/10 dark:hover:bg-white/15"
       >
         <BookText size={14} />
         {direction === 'rtl' ? '右開き' : '左開き'}

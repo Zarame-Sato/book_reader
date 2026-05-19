@@ -11,19 +11,23 @@ const KIND_ICON: Record<BookKind, typeof FileText> = {
 };
 
 const KIND_GRADIENT: Record<BookKind, string> = {
-  pdf: 'from-rose-500/80 to-orange-500/80',
-  cbz: 'from-accent-500/80 to-sky-500/80',
-  image: 'from-emerald-500/80 to-teal-500/80',
+  pdf: 'from-rose-300 to-orange-300',
+  cbz: 'from-accent-300 to-sky-300',
+  image: 'from-emerald-300 to-teal-300',
 };
 
-interface BookCardProps {
+/** A book standing on the shelf — cover, spine, title and progress. */
+export function BookCard({
+  id,
+  name,
+  kind,
+  onOpen,
+}: {
   id: string;
   name: string;
   kind: BookKind;
   onOpen: () => void;
-}
-
-export function BookCard({ id, name, kind, onOpen }: BookCardProps) {
+}) {
   const [cover, setCover] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const Icon = KIND_ICON[kind];
@@ -48,29 +52,38 @@ export function BookCard({ id, name, kind, onOpen }: BookCardProps) {
   }, [id]);
 
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="group flex flex-col gap-2 text-left"
-    >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-xl shadow-sm ring-1 ring-stone-200/70 transition group-hover:-translate-y-1 group-hover:shadow-lg dark:ring-stone-800">
+    <button type="button" onClick={onOpen} className="group block w-full">
+      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-l-[2px] rounded-r-lg shadow-[0_12px_18px_-9px_rgba(74,52,24,0.55)] ring-1 ring-black/10 transition duration-200 ease-out group-hover:-translate-y-2 group-hover:shadow-[0_22px_28px_-12px_rgba(74,52,24,0.6)]">
         {cover ? (
           <img src={cover} alt="" className="size-full object-cover" />
         ) : (
           <div
             className={cn(
-              'grid size-full place-items-center bg-gradient-to-br text-white',
+              'grid size-full place-items-center bg-gradient-to-br',
               KIND_GRADIENT[kind],
             )}
           >
-            <Icon size={40} strokeWidth={1.5} />
+            <Icon size={36} strokeWidth={1.5} className="text-white/85" />
           </div>
         )}
-        <span className="absolute left-2 top-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur">
+
+        {/* spine shading on the bound edge */}
+        <span className="pointer-events-none absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/30 to-transparent" />
+        {/* page-edge highlight on the open edge */}
+        <span className="pointer-events-none absolute inset-y-0 right-0 w-1 bg-gradient-to-l from-white/40 to-transparent" />
+
+        <span className="absolute left-2 top-2 rounded-md bg-black/45 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
           {BOOK_KIND_LABEL[kind]}
         </span>
+
+        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-2.5 pb-2 pt-6">
+          <span className="line-clamp-2 text-[11px] font-medium leading-snug text-white">
+            {name}
+          </span>
+        </span>
+
         {progress > 0 && (
-          <span className="absolute inset-x-0 bottom-0 h-1 bg-black/20">
+          <span className="absolute inset-x-0 bottom-0 h-[3px] bg-black/30">
             <span
               className="block h-full bg-accent-400"
               style={{ width: `${progress * 100}%` }}
@@ -78,35 +91,24 @@ export function BookCard({ id, name, kind, onOpen }: BookCardProps) {
           </span>
         )}
       </div>
-      <span className="line-clamp-2 text-xs font-medium text-stone-700 dark:text-stone-300">
-        {name}
-      </span>
     </button>
   );
 }
 
-interface FolderCardProps {
-  name: string;
-  onOpen: () => void;
-}
-
-export function FolderCard({ name, onOpen }: FolderCardProps) {
+/** A folder sitting on the shelf. */
+export function FolderCard({ name, onOpen }: { name: string; onOpen: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="group flex flex-col gap-2 text-left"
-    >
-      <div className="grid aspect-[3/4] place-items-center rounded-xl border border-stone-200 bg-stone-100 transition group-hover:-translate-y-1 group-hover:border-accent-300 group-hover:bg-accent-50 dark:border-stone-800 dark:bg-stone-800/60 dark:group-hover:bg-stone-800">
+    <button type="button" onClick={onOpen} className="group block w-full">
+      <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2.5 rounded-lg bg-gradient-to-br from-wood-100 to-wood-200 px-2 text-center shadow-[0_12px_18px_-9px_rgba(74,52,24,0.5)] ring-1 ring-wood-300/70 transition duration-200 ease-out group-hover:-translate-y-2 group-hover:shadow-[0_22px_28px_-12px_rgba(74,52,24,0.55)] dark:from-stone-700 dark:to-stone-800 dark:ring-stone-600">
         <FolderClosed
-          size={44}
+          size={38}
           strokeWidth={1.5}
-          className="text-stone-400 group-hover:text-accent-500"
+          className="text-wood-600 dark:text-stone-300"
         />
+        <span className="line-clamp-2 text-[11px] font-medium leading-snug text-wood-600 dark:text-stone-300">
+          {name}
+        </span>
       </div>
-      <span className="line-clamp-2 text-xs font-medium text-stone-700 dark:text-stone-300">
-        {name}
-      </span>
     </button>
   );
 }
