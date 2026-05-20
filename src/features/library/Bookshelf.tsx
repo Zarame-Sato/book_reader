@@ -117,6 +117,7 @@ export function Bookshelf() {
                       id={item.file.id}
                       name={item.file.name}
                       kind={item.kind}
+                      thumbnailLink={item.file.thumbnailLink}
                       onOpen={() => void openBook(item.file, item.kind)}
                     />
                   ),

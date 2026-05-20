@@ -18,6 +18,8 @@ interface PageViewProps {
   index: number;
   /** Tapping a screen zone — used for page turns and toggling the UI. */
   onZoneTap?: (zone: TapZone) => void;
+  /** Swipe at fit-scale — used for page turns. */
+  onSwipe?: (direction: 'left' | 'right') => void;
   /** Disables tap zones (e.g. while an annotation tool is active). */
   zonesDisabled?: boolean;
   /** When false, pan/pinch gestures are disabled (annotation drawing mode). */
@@ -30,6 +32,7 @@ export function PageView({
   source,
   index,
   onZoneTap,
+  onSwipe,
   zonesDisabled,
   gesturesEnabled = true,
   renderOverlay,
@@ -107,9 +110,23 @@ export function PageView({
 
   useGesture(
     {
-      onDrag: ({ offset: [x, y], pinching, cancel }) => {
+      onDrag: ({ offset: [x, y], movement: [mx, my], last, pinching, cancel }) => {
         if (pinching) {
           cancel();
+          return;
+        }
+        // At fit-scale the page already fills the viewport — don't pan it off-centre.
+        // Instead, a horizontal drag past a threshold turns the page.
+        const atFit = zoom.current <= MIN_ZOOM + 0.01;
+        if (atFit) {
+          if (
+            last &&
+            onSwipe &&
+            Math.abs(mx) > 60 &&
+            Math.abs(mx) > Math.abs(my) * 1.4
+          ) {
+            onSwipe(mx > 0 ? 'right' : 'left');
+          }
           return;
         }
         tx.current = x;

@@ -128,12 +128,21 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
     (advance ? goNext : goPrev)();
   }, []);
 
+  const handleSwipe = useCallback((dir: 'left' | 'right') => {
+    const { goNext, goPrev, direction: d } = useReaderStore.getState();
+    // LTR: swipe-left = next; RTL: swipe-right = next.
+    const swipeLeft = dir === 'left';
+    const advance = d === 'rtl' ? !swipeLeft : swipeLeft;
+    (advance ? goNext : goPrev)();
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-stone-200 dark:bg-stone-950">
       <PageView
         source={source}
         index={index}
         onZoneTap={handleZoneTap}
+        onSwipe={handleSwipe}
         zonesDisabled={tool !== 'hand'}
         gesturesEnabled={tool === 'hand'}
         renderOverlay={(page) => (
