@@ -11,9 +11,9 @@ const KIND_ICON: Record<BookKind, typeof FileText> = {
 };
 
 const KIND_GRADIENT: Record<BookKind, string> = {
-  pdf: 'from-rose-300 to-orange-300',
-  cbz: 'from-accent-300 to-sky-300',
-  image: 'from-emerald-300 to-teal-300',
+  pdf: 'from-amber-200 via-orange-300 to-rose-400',
+  cbz: 'from-sky-300 via-indigo-400 to-violet-500',
+  image: 'from-emerald-300 via-teal-400 to-cyan-500',
 };
 
 /** A book standing on the shelf — cover, spine, title and progress. */
@@ -21,14 +21,17 @@ export function BookCard({
   id,
   name,
   kind,
+  thumbnailLink,
   onOpen,
 }: {
   id: string;
   name: string;
   kind: BookKind;
+  thumbnailLink?: string;
   onOpen: () => void;
 }) {
-  const [cover, setCover] = useState<string | null>(null);
+  const [cover, setCover] = useState<string | null>(thumbnailLink ?? null);
+  const [imgFailed, setImgFailed] = useState(false);
   const [progress, setProgress] = useState(0);
   const Icon = KIND_ICON[kind];
 
@@ -40,6 +43,7 @@ export function BookCard({
       if (rec.cover) {
         url = URL.createObjectURL(rec.cover);
         setCover(url);
+        setImgFailed(false);
       }
       if (rec.pageCount && rec.pageCount > 1) {
         setProgress(Math.min(1, rec.lastReadPage / (rec.pageCount - 1)));
@@ -51,11 +55,19 @@ export function BookCard({
     };
   }, [id]);
 
+  const showCover = cover !== null && !imgFailed;
+
   return (
     <button type="button" onClick={onOpen} className="group block w-full">
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-l-[2px] rounded-r-lg shadow-[0_12px_18px_-9px_rgba(74,52,24,0.55)] ring-1 ring-black/10 transition duration-200 ease-out group-hover:-translate-y-2 group-hover:shadow-[0_22px_28px_-12px_rgba(74,52,24,0.6)]">
-        {cover ? (
-          <img src={cover} alt="" className="size-full object-cover" />
+        {showCover ? (
+          <img
+            src={cover}
+            alt=""
+            className="size-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={() => setImgFailed(true)}
+          />
         ) : (
           <div
             className={cn(
@@ -63,7 +75,7 @@ export function BookCard({
               KIND_GRADIENT[kind],
             )}
           >
-            <Icon size={36} strokeWidth={1.5} className="text-white/85" />
+            <Icon size={36} strokeWidth={1.5} className="text-white/90" />
           </div>
         )}
 
