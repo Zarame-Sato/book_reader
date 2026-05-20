@@ -8,6 +8,7 @@ import type { SidecarMeta } from '@/features/annotation/annotationTypes';
 import { useAnnotations } from '@/features/annotation/useAnnotations';
 import { getBookRecord, updateBookRecord } from '@/features/library/booksDb';
 import { generateCover } from '@/features/library/coverThumbnail';
+import { FlipReader } from './FlipReader';
 import { PageView, type TapZone } from './PageView';
 import { PageNavigator } from './PageNavigator';
 import { ReaderToolbar } from './ReaderToolbar';
@@ -136,23 +137,34 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
     (advance ? goNext : goPrev)();
   }, []);
 
+  const useFlip = tool === 'hand' && source.pageCount > 1;
+
   return (
     <div className="fixed inset-0 bg-stone-200 dark:bg-stone-950">
-      <PageView
-        source={source}
-        index={index}
-        onZoneTap={handleZoneTap}
-        onSwipe={handleSwipe}
-        zonesDisabled={tool !== 'hand'}
-        gesturesEnabled={tool === 'hand'}
-        renderOverlay={(page) => (
-          <AnnotationOverlay
-            pageIndex={index}
-            pageWidth={page.width}
-            pageHeight={page.height}
-          />
-        )}
-      />
+      {useFlip ? (
+        <FlipReader
+          source={source}
+          index={index}
+          direction={direction}
+          onPageChange={(i) => useReaderStore.getState().setIndex(i)}
+        />
+      ) : (
+        <PageView
+          source={source}
+          index={index}
+          onZoneTap={handleZoneTap}
+          onSwipe={handleSwipe}
+          zonesDisabled={tool !== 'hand'}
+          gesturesEnabled={tool === 'hand'}
+          renderOverlay={(page) => (
+            <AnnotationOverlay
+              pageIndex={index}
+              pageWidth={page.width}
+              pageHeight={page.height}
+            />
+          )}
+        />
+      )}
       <ReaderToolbar
         visible={uiVisible}
         title={book.name}
