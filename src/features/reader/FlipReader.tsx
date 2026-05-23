@@ -22,6 +22,8 @@ interface FlipReaderProps {
   index: number;
   direction: ReadingDirection;
   onPageChange: (index: number) => void;
+  /** Tapping the central area (away from flip corners) toggles the UI. */
+  onCenterTap?: () => void;
 }
 
 interface BookDimensions {
@@ -32,7 +34,13 @@ interface BookDimensions {
 }
 
 /** Realistic page-curl + auto two-page spread reader (react-pageflip). */
-export function FlipReader({ source, index, direction, onPageChange }: FlipReaderProps) {
+export function FlipReader({
+  source,
+  index,
+  direction,
+  onPageChange,
+  onCenterTap,
+}: FlipReaderProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bookRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,6 +50,8 @@ export function FlipReader({ source, index, direction, onPageChange }: FlipReade
   const [zoom, setZoom] = useState(1);
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
+  const onCenterTapRef = useRef(onCenterTap);
+  onCenterTapRef.current = onCenterTap;
 
   // Measure the container so we can fit the book exactly.
   useEffect(() => {
@@ -84,34 +94,74 @@ export function FlipReader({ source, index, direction, onPageChange }: FlipReade
     setCurrentIndex(index);
   }, [index, currentIndex]);
 
-  // Two-finger pinch zoom, via capture-phase touch handlers so StPageFlip's
-  // single-finger drag handler isn't disturbed. Trackpad pinch on desktop
-  // arrives as ctrl+wheel.
+  // Pinch (two-finger) zoom + single-finger center-tap detection — capture-phase
+  // so StPageFlip's drag/click handlers aren't disturbed.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     let pinching = false;
     let startDistance = 0;
     let startScale = 1;
+    let tapStart: { x: number; y: number; time: number } | null = null;
+    let tapMoved = false;
+    let lastTouchTapAt = 0;
+
+    const triggerCenterTap = (clientX: number) => {
+      const rect = el.getBoundingClientRect();
+      const relX = (clientX - rect.left) / rect.width;
+      // Central band only — leave a 22% margin on each side as flip corners.
+      if (relX >= 0.22 && relX <= 0.78) {
+        onCenterTapRef.current?.();
+        return true;
+      }
+      return false;
+    };
 
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         startDistance = distance(e.touches[0]!, e.touches[1]!);
         startScale = zoomRef.current;
         pinching = true;
+        tapStart = null;
         e.preventDefault();
         e.stopPropagation();
+      } else if (e.touches.length === 1) {
+        const t = e.touches[0]!;
+        tapStart = { x: t.clientX, y: t.clientY, time: Date.now() };
+        tapMoved = false;
       }
     };
     const onTouchMove = (e: TouchEvent) => {
-      if (!pinching || e.touches.length < 2 || startDistance <= 0) return;
-      const d = distance(e.touches[0]!, e.touches[1]!);
-      setZoom(clamp(startScale * (d / startDistance), MIN_ZOOM, MAX_ZOOM));
-      e.preventDefault();
-      e.stopPropagation();
+      if (pinching && e.touches.length >= 2 && startDistance > 0) {
+        const d = distance(e.touches[0]!, e.touches[1]!);
+        setZoom(clamp(startScale * (d / startDistance), MIN_ZOOM, MAX_ZOOM));
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (tapStart && e.touches.length === 1) {
+        const t = e.touches[0]!;
+        if (Math.hypot(t.clientX - tapStart.x, t.clientY - tapStart.y) > 10) {
+          tapMoved = true;
+        }
+      }
     };
     const onTouchEnd = (e: TouchEvent) => {
       if (pinching && e.touches.length < 2) pinching = false;
+      if (
+        tapStart &&
+        e.touches.length === 0 &&
+        !tapMoved &&
+        Date.now() - tapStart.time < 300
+      ) {
+        if (triggerCenterTap(tapStart.x)) lastTouchTapAt = Date.now();
+      }
+      if (e.touches.length === 0) tapStart = null;
+    };
+    const onClick = (e: MouseEvent) => {
+      // Suppress synthetic click that follows a touch we already handled.
+      if (Date.now() - lastTouchTapAt < 500) return;
+      triggerCenterTap(e.clientX);
     };
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
@@ -126,12 +176,14 @@ export function FlipReader({ source, index, direction, onPageChange }: FlipReade
     el.addEventListener('touchmove', onTouchMove, opts);
     el.addEventListener('touchend', onTouchEnd, opts);
     el.addEventListener('touchcancel', onTouchEnd, opts);
+    el.addEventListener('click', onClick);
     el.addEventListener('wheel', onWheel, opts);
     return () => {
       el.removeEventListener('touchstart', onTouchStart, opts);
       el.removeEventListener('touchmove', onTouchMove, opts);
       el.removeEventListener('touchend', onTouchEnd, opts);
       el.removeEventListener('touchcancel', onTouchEnd, opts);
+      el.removeEventListener('click', onClick);
       el.removeEventListener('wheel', onWheel, opts);
     };
   }, []);
@@ -162,12 +214,9 @@ export function FlipReader({ source, index, direction, onPageChange }: FlipReade
     };
   }, [pageAspect, containerSize]);
 
-  const handleDoubleClick = () => setZoom(1);
-
   return (
     <div
       ref={containerRef}
-      onDoubleClick={handleDoubleClick}
       className="touch-none-area relative grid size-full place-items-center overflow-hidden"
     >
       {!dimensions ? (

@@ -28,7 +28,8 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
   const pageCount = useReaderStore((s) => s.pageCount);
   const direction = useReaderStore((s) => s.direction);
   const tool = useAnnotationStore((s) => s.tool);
-  const [uiVisible, setUiVisible] = useState(true);
+  // The reader starts immersive — UI appears when the user taps the centre.
+  const [uiVisible, setUiVisible] = useState(false);
   const [ready, setReady] = useState(false);
   const [modifiedTime, setModifiedTime] = useState<string | null>(null);
 
@@ -147,6 +148,7 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
           index={index}
           direction={direction}
           onPageChange={(i) => useReaderStore.getState().setIndex(i)}
+          onCenterTap={() => setUiVisible((v) => !v)}
         />
       ) : (
         <PageView
@@ -171,7 +173,9 @@ function ReaderView({ fileId, book }: { fileId: string; book: LoadedBook }) {
         direction={direction}
         onToggleDirection={toggleDirection}
       />
-      <AnnotationToolbar visible={uiVisible} pageIndex={index} />
+      {/* The annotation palette stays visible while drawing so the user can
+          switch back to the hand tool — otherwise they'd be stuck without UI. */}
+      <AnnotationToolbar visible={uiVisible || tool !== 'hand'} pageIndex={index} />
       <PageNavigator
         visible={uiVisible}
         index={index}
