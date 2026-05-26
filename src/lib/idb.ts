@@ -30,6 +30,15 @@ export interface AnnotationCacheRecord {
   updatedAt: number;
 }
 
+/** Cached blob of a downloaded book file, keyed by Drive fileId. */
+export interface BookFileCacheRecord {
+  fileId: string;
+  blob: Blob;
+  /** Drive `modifiedTime` at the moment of caching — used to invalidate. */
+  modifiedTime: string | null;
+  cachedAt: number;
+}
+
 interface BookReaderDB extends DBSchema {
   books: {
     key: string;
@@ -40,20 +49,29 @@ interface BookReaderDB extends DBSchema {
     key: string;
     value: AnnotationCacheRecord;
   };
+  book_files: {
+    key: string;
+    value: BookFileCacheRecord;
+  };
 }
 
 const DB_NAME = 'book_reader';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<BookReaderDB>> | null = null;
 
 export function getDb(): Promise<IDBPDatabase<BookReaderDB>> {
   if (!dbPromise) {
     dbPromise = openDB<BookReaderDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        const books = db.createObjectStore('books', { keyPath: 'fileId' });
-        books.createIndex('by-lastOpened', 'lastOpenedAt');
-        db.createObjectStore('annotations', { keyPath: 'fileId' });
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          const books = db.createObjectStore('books', { keyPath: 'fileId' });
+          books.createIndex('by-lastOpened', 'lastOpenedAt');
+          db.createObjectStore('annotations', { keyPath: 'fileId' });
+        }
+        if (oldVersion < 2) {
+          db.createObjectStore('book_files', { keyPath: 'fileId' });
+        }
       },
     });
   }
