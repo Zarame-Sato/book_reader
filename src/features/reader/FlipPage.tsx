@@ -1,21 +1,21 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { StaticAnnotationLayer } from '@/features/annotation/StaticAnnotationLayer';
 import type { BookSource, PageInfo } from '@/features/book-sources/BookSource';
-import type { ReadingDirection } from '@/lib/idb';
 
 /** Pages within this radius of the current one render their full contents. */
 const ACTIVE_WINDOW = 3;
 
 interface FlipPageProps {
+  /** Book-order page index (0..pageCount-1). */
   index: number;
   source: BookSource;
+  /** Book-order index of the current page. */
   currentIndex: number;
-  direction: ReadingDirection;
 }
 
 /** A single page in the flipbook — lazily renders its canvas content. */
 export const FlipPage = forwardRef<HTMLDivElement, FlipPageProps>(function FlipPage(
-  { index, source, currentIndex, direction },
+  { index, source, currentIndex },
   ref,
 ) {
   const isActive = Math.abs(currentIndex - index) <= ACTIVE_WINDOW;
@@ -46,47 +46,35 @@ export const FlipPage = forwardRef<HTMLDivElement, FlipPageProps>(function FlipP
     };
   }, [isActive, source, index]);
 
-  // The root div is owned by react-pageflip (it writes `transform` imperatively
-  // for the flip animation), so we MUST NOT set transform on it. Put the RTL
-  // un-mirror on an inner wrapper instead.
   return (
     <div ref={ref} className="relative size-full overflow-hidden bg-white">
-      <div
-        className="relative size-full"
-        style={
-          direction === 'rtl'
-            ? { transform: 'scaleX(-1)', transformOrigin: 'center center' }
-            : undefined
-        }
-      >
-        {isActive ? (
-          failed ? (
-            <div className="grid size-full place-items-center text-xs text-rose-400">
-              ページを表示できませんでした
-            </div>
-          ) : (
-            <>
-              <canvas
-                ref={canvasRef}
-                className="block size-full"
-                style={{ objectFit: 'contain' }}
-              />
-              {info && (
-                <StaticAnnotationLayer
-                  pageIndex={index}
-                  pageWidth={info.width}
-                  pageHeight={info.height}
-                />
-              )}
-            </>
-          )
+      {isActive ? (
+        failed ? (
+          <div className="grid size-full place-items-center text-xs text-rose-400">
+            ページを表示できませんでした
+          </div>
         ) : (
-          <div className="grid size-full place-items-center text-[11px] text-stone-300">…</div>
-        )}
-        <span className="pointer-events-none absolute bottom-1 right-2 text-[10px] text-stone-300 select-none">
-          {index + 1}
-        </span>
-      </div>
+          <>
+            <canvas
+              ref={canvasRef}
+              className="block size-full"
+              style={{ objectFit: 'contain' }}
+            />
+            {info && (
+              <StaticAnnotationLayer
+                pageIndex={index}
+                pageWidth={info.width}
+                pageHeight={info.height}
+              />
+            )}
+          </>
+        )
+      ) : (
+        <div className="grid size-full place-items-center text-[11px] text-stone-300">…</div>
+      )}
+      <span className="pointer-events-none absolute bottom-1 right-2 text-[10px] text-stone-300 select-none">
+        {index + 1}
+      </span>
     </div>
   );
 });
