@@ -17,6 +17,14 @@ function distance(a: Touch, b: Touch): number {
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 }
 
+/**
+ * For right-bound books the page array is reversed: lib-index 0 is the last
+ * book page. The mapping is symmetric — same formula both ways.
+ */
+function mapIndex(index: number, total: number, direction: ReadingDirection): number {
+  return direction === 'rtl' ? total - 1 - index : index;
+}
+
 interface FlipReaderProps {
   source: BookSource;
   index: number;
@@ -53,9 +61,8 @@ export function FlipReader({
   const onCenterTapRef = useRef(onCenterTap);
   onCenterTapRef.current = onCenterTap;
 
-  // Measure the container so we can fit the book exactly. Only update state
-  // when the numbers actually change, so spurious ResizeObserver fires (iOS
-  // Safari's URL bar animation) don't churn the flipbook.
+  // Measure the container; only re-set state when the numbers actually change
+  // so iOS Safari's URL-bar wiggle doesn't churn the flipbook.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -92,13 +99,13 @@ export function FlipReader({
     const flip = bookRef.current?.pageFlip?.();
     if (flip && typeof flip.flip === 'function') {
       try {
-        flip.flip(index);
+        flip.flip(mapIndex(index, source.pageCount, direction));
       } catch {
         /* ignore — flipbook may not be ready yet */
       }
     }
     setCurrentIndex(index);
-  }, [index, currentIndex]);
+  }, [index, currentIndex, direction, source.pageCount]);
 
   // Prefetch pages around the current one so flips feel instant.
   useEffect(() => {
@@ -109,8 +116,8 @@ export function FlipReader({
     }
   }, [currentIndex, source]);
 
-  // Pinch (two-finger) zoom + single-finger center-tap detection — capture-phase
-  // so StPageFlip's drag/click handlers aren't disturbed.
+  // Pinch (two-finger) zoom + single-finger centre-tap detection — capture-
+  // phase so StPageFlip's own pointer handlers aren't disturbed.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -124,7 +131,6 @@ export function FlipReader({
     const triggerCenterTap = (clientX: number) => {
       const rect = el.getBoundingClientRect();
       const relX = (clientX - rect.left) / rect.width;
-      // Central band only — leave a 22% margin on each side as flip corners.
       if (relX >= 0.22 && relX <= 0.78) {
         onCenterTapRef.current?.();
         return true;
@@ -174,7 +180,6 @@ export function FlipReader({
       if (e.touches.length === 0) tapStart = null;
     };
     const onClick = (e: MouseEvent) => {
-      // Suppress synthetic click that follows a touch we already handled.
       if (Date.now() - lastTouchTapAt < 500) return;
       triggerCenterTap(e.clientX);
     };
@@ -204,8 +209,6 @@ export function FlipReader({
   }, []);
 
   // Compute the largest page size that fits the container while keeping aspect.
-  // Memo on the size *numbers* so the result is reference-stable when nothing
-  // actually changed.
   const dimensions: BookDimensions | null = useMemo(() => {
     if (!pageAspect || containerSize.width <= 0 || containerSize.height <= 0) return null;
     const isPortrait = containerSize.height >= containerSize.width;
@@ -244,7 +247,7 @@ export function FlipReader({
       ) : (
         <div
           style={{
-            transform: `${direction === 'rtl' ? 'scaleX(-1) ' : ''}scale(${zoom})`,
+            transform: `scale(${zoom})`,
             transformOrigin: 'center center',
             transition: 'transform 0.15s ease-out',
           }}
@@ -253,10 +256,10 @@ export function FlipReader({
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <HTMLFlipBook
             ref={bookRef}
-            // Remount only on orientation change or a meaningful (>~100px) size
-            // bucket change — minor pixel-level fluctuations don't.
+            // Remount on orientation change, direction change, or a meaningful
+            // (~100px bucket) size change. Minor pixel-level wobble doesn't.
             key={
-              `${dimensions.isPortrait ? 'p' : 'l'}-` +
+              `${dimensions.isPortrait ? 'p' : 'l'}-${direction}-` +
               `${Math.round(dimensions.bookWidth / 100)}-` +
               `${Math.round(dimensions.pageHeight / 100)}`
             }
@@ -273,7 +276,7 @@ export function FlipReader({
               usePortrait: dimensions.isPortrait,
               showCover: false,
               maxShadowOpacity: 0.45,
-              startPage: index,
+              startPage: mapIndex(index, source.pageCount, direction),
               showPageCorners: true,
               disableFlipByClick: false,
               useMouseEvents: true,
@@ -288,21 +291,25 @@ export function FlipReader({
                 height: dimensions.pageHeight,
               },
               onFlip: (e: { data: number }) => {
-                setCurrentIndex(e.data);
-                onPageChange(e.data);
+                const bookIndex = mapIndex(e.data, source.pageCount, direction);
+                setCurrentIndex(bookIndex);
+                onPageChange(bookIndex);
               },
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any)}
           >
-            {Array.from({ length: source.pageCount }, (_, i) => (
-              <FlipPage
-                key={i}
-                index={i}
-                source={source}
-                currentIndex={currentIndex}
-                direction={direction}
-              />
-            ))}
+            {Array.from({ length: source.pageCount }, (_, libIndex) => {
+              // RTL books reverse the array so the flipbook flips right-to-left.
+              const bookIndex = mapIndex(libIndex, source.pageCount, direction);
+              return (
+                <FlipPage
+                  key={libIndex}
+                  index={bookIndex}
+                  source={source}
+                  currentIndex={currentIndex}
+                />
+              );
+            })}
           </HTMLFlipBook>
         </div>
       )}
