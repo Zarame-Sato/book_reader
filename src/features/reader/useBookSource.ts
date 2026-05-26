@@ -4,6 +4,7 @@ import type { BookSource } from '@/features/book-sources/BookSource';
 import { createBookSource } from '@/features/book-sources/createBookSource';
 import { downloadFile } from '@/features/drive/driveClient';
 import { getBookRecord } from '@/features/library/booksDb';
+import { getCachedBlob, putCachedBlob } from './bookFileCache';
 
 export interface LoadedBook {
   source: BookSource;
@@ -16,7 +17,10 @@ export type BookSourceState =
   | { status: 'ready'; book: LoadedBook }
   | { status: 'error'; error: string };
 
-/** Downloads a book from Drive and builds its BookSource, disposed on unmount. */
+/**
+ * Downloads a book from Drive (or serves it from the local blob cache) and
+ * builds its BookSource. The source is disposed on unmount.
+ */
 export function useBookSource(fileId: string): BookSourceState {
   const [state, setState] = useState<BookSourceState>({
     status: 'loading',
@@ -33,11 +37,37 @@ export function useBookSource(fileId: string): BookSourceState {
       if (!record) {
         throw new Error('書籍情報が見つかりません。本棚から開き直してください。');
       }
-      const blob = await downloadFile(fileId, (loaded, total) => {
-        if (!cancelled && total > 0) {
-          setState({ status: 'loading', progress: loaded / total });
+
+      // 1. Try the local blob cache — instant if the Drive modifiedTime matches.
+      let blob: Blob | null = null;
+      const expectedMtime = record.modifiedTime ?? null;
+      try {
+        const cache = await getCachedBlob(fileId);
+        if (cache && cache.modifiedTime === expectedMtime) {
+          blob = cache.blob;
+          setState({ status: 'loading', progress: 1 });
         }
-      });
+      } catch {
+        /* ignore cache read errors */
+      }
+
+      // 2. Otherwise download from Drive and cache for next time.
+      if (!blob) {
+        blob = await downloadFile(fileId, (loaded, total) => {
+          if (!cancelled && total > 0) {
+            setState({ status: 'loading', progress: loaded / total });
+          }
+        });
+        void putCachedBlob({
+          fileId,
+          blob,
+          modifiedTime: expectedMtime,
+          cachedAt: Date.now(),
+        }).catch(() => {
+          /* cache writes are best-effort */
+        });
+      }
+
       const source = await createBookSource(record.kind, blob);
       if (cancelled) {
         source.dispose();

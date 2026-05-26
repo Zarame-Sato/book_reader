@@ -100,6 +100,15 @@ export function FlipReader({
     setCurrentIndex(index);
   }, [index, currentIndex]);
 
+  // Prefetch pages around the current one so flips feel instant.
+  useEffect(() => {
+    if (!source.prefetch) return;
+    for (let offset = -4; offset <= 4; offset++) {
+      const i = currentIndex + offset;
+      if (i >= 0 && i < source.pageCount) source.prefetch(i);
+    }
+  }, [currentIndex, source]);
+
   // Pinch (two-finger) zoom + single-finger center-tap detection — capture-phase
   // so StPageFlip's drag/click handlers aren't disturbed.
   useEffect(() => {
