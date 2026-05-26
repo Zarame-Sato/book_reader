@@ -53,12 +53,18 @@ export function FlipReader({
   const onCenterTapRef = useRef(onCenterTap);
   onCenterTapRef.current = onCenterTap;
 
-  // Measure the container so we can fit the book exactly.
+  // Measure the container so we can fit the book exactly. Only update state
+  // when the numbers actually change, so spurious ResizeObserver fires (iOS
+  // Safari's URL bar animation) don't churn the flipbook.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const update = () => {
-      setContainerSize({ width: el.clientWidth, height: el.clientHeight });
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      setContainerSize((prev) =>
+        prev.width === w && prev.height === h ? prev : { width: w, height: h },
+      );
     };
     update();
     const ro = new ResizeObserver(update);
@@ -189,6 +195,8 @@ export function FlipReader({
   }, []);
 
   // Compute the largest page size that fits the container while keeping aspect.
+  // Memo on the size *numbers* so the result is reference-stable when nothing
+  // actually changed.
   const dimensions: BookDimensions | null = useMemo(() => {
     if (!pageAspect || containerSize.width <= 0 || containerSize.height <= 0) return null;
     const isPortrait = containerSize.height >= containerSize.width;
@@ -200,19 +208,19 @@ export function FlipReader({
     let bookW: number;
     let bookH: number;
     if (maxW / maxH > bookAspect) {
-      bookH = maxH;
+      bookH = Math.round(maxH);
       bookW = Math.round(bookH * bookAspect);
     } else {
-      bookW = maxW;
+      bookW = Math.round(maxW);
       bookH = Math.round(bookW / bookAspect);
     }
     return {
       pageWidth: Math.max(1, Math.round(bookW / pagesShown)),
       pageHeight: Math.max(1, bookH),
-      bookWidth: bookW,
+      bookWidth: Math.max(1, bookW),
       isPortrait,
     };
-  }, [pageAspect, containerSize]);
+  }, [pageAspect, containerSize.width, containerSize.height]);
 
   return (
     <div
@@ -220,7 +228,10 @@ export function FlipReader({
       className="touch-none-area relative grid size-full place-items-center overflow-hidden"
     >
       {!dimensions ? (
-        <Spinner size={22} className="text-stone-400" />
+        <div className="flex flex-col items-center gap-3 text-stone-500">
+          <Spinner size={32} className="text-accent-500" />
+          <p className="text-sm">ページを準備中…</p>
+        </div>
       ) : (
         <div
           style={{
@@ -233,7 +244,13 @@ export function FlipReader({
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <HTMLFlipBook
             ref={bookRef}
-            key={`${dimensions.isPortrait ? 'p' : 'l'}-${dimensions.pageWidth}-${dimensions.pageHeight}`}
+            // Remount only on orientation change or a meaningful (>~100px) size
+            // bucket change — minor pixel-level fluctuations don't.
+            key={
+              `${dimensions.isPortrait ? 'p' : 'l'}-` +
+              `${Math.round(dimensions.bookWidth / 100)}-` +
+              `${Math.round(dimensions.pageHeight / 100)}`
+            }
             {...({
               width: dimensions.pageWidth,
               height: dimensions.pageHeight,

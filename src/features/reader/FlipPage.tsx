@@ -21,21 +21,26 @@ export const FlipPage = forwardRef<HTMLDivElement, FlipPageProps>(function FlipP
   const isActive = Math.abs(currentIndex - index) <= ACTIVE_WINDOW;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [info, setInfo] = useState<PageInfo | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (!isActive) {
       setInfo(null);
+      setFailed(false);
       return;
     }
     const canvas = canvasRef.current;
     if (!canvas) return;
     let cancelled = false;
+    setFailed(false);
     void source
       .renderPage(index, canvas)
       .then((pageInfo) => {
         if (!cancelled) setInfo(pageInfo);
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -49,20 +54,26 @@ export const FlipPage = forwardRef<HTMLDivElement, FlipPageProps>(function FlipP
       style={direction === 'rtl' ? { transform: 'scaleX(-1)' } : undefined}
     >
       {isActive ? (
-        <>
-          <canvas
-            ref={canvasRef}
-            className="block size-full"
-            style={{ objectFit: 'contain' }}
-          />
-          {info && (
-            <StaticAnnotationLayer
-              pageIndex={index}
-              pageWidth={info.width}
-              pageHeight={info.height}
+        failed ? (
+          <div className="grid size-full place-items-center text-xs text-rose-400">
+            ページを表示できませんでした
+          </div>
+        ) : (
+          <>
+            <canvas
+              ref={canvasRef}
+              className="block size-full"
+              style={{ objectFit: 'contain' }}
             />
-          )}
-        </>
+            {info && (
+              <StaticAnnotationLayer
+                pageIndex={index}
+                pageWidth={info.width}
+                pageHeight={info.height}
+              />
+            )}
+          </>
+        )
       ) : (
         <div className="grid size-full place-items-center text-[11px] text-stone-300">…</div>
       )}
