@@ -1,7 +1,7 @@
 import { type BookFileCacheRecord, getDb } from '@/lib/idb';
 
-/** How many downloaded book blobs to keep cached locally. */
-const MAX_CACHED_FILES = 12;
+/** Skip caching for blobs over this size — they're not worth the storage churn. */
+export const MAX_CACHEABLE_BYTES = 150 * 1024 * 1024;
 
 export async function getCachedBlob(
   fileId: string,
@@ -10,16 +10,9 @@ export async function getCachedBlob(
 }
 
 export async function putCachedBlob(record: BookFileCacheRecord): Promise<void> {
-  const db = await getDb();
-  await db.put('book_files', record);
-  // Trim oldest entries when the cache grows past the limit.
-  const all = await db.getAll('book_files');
-  if (all.length > MAX_CACHED_FILES) {
-    const sorted = all.slice().sort((a, b) => a.cachedAt - b.cachedAt);
-    for (const old of sorted.slice(0, all.length - MAX_CACHED_FILES)) {
-      await db.delete('book_files', old.fileId);
-    }
-  }
+  // Storage growth is bounded by the browser's quota — when full, put() throws
+  // and the caller's .catch() silently drops it. That's fine.
+  await (await getDb()).put('book_files', record);
 }
 
 export async function evictCachedBlob(fileId: string): Promise<void> {

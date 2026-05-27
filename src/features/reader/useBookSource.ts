@@ -4,7 +4,7 @@ import type { BookSource } from '@/features/book-sources/BookSource';
 import { createBookSource } from '@/features/book-sources/createBookSource';
 import { downloadFile } from '@/features/drive/driveClient';
 import { getBookRecord } from '@/features/library/booksDb';
-import { getCachedBlob, putCachedBlob } from './bookFileCache';
+import { getCachedBlob, MAX_CACHEABLE_BYTES, putCachedBlob } from './bookFileCache';
 
 export interface LoadedBook {
   source: BookSource;
@@ -58,14 +58,16 @@ export function useBookSource(fileId: string): BookSourceState {
             setState({ status: 'loading', progress: loaded / total });
           }
         });
-        void putCachedBlob({
-          fileId,
-          blob,
-          modifiedTime: expectedMtime,
-          cachedAt: Date.now(),
-        }).catch(() => {
-          /* cache writes are best-effort */
-        });
+        if (blob.size <= MAX_CACHEABLE_BYTES) {
+          void putCachedBlob({
+            fileId,
+            blob,
+            modifiedTime: expectedMtime,
+            cachedAt: Date.now(),
+          }).catch(() => {
+            /* cache writes are best-effort (quota, etc.) */
+          });
+        }
       }
 
       const source = await createBookSource(record.kind, blob);
@@ -79,6 +81,7 @@ export function useBookSource(fileId: string): BookSourceState {
         book: { source, name: record.name, kind: record.kind },
       });
     })().catch((e: unknown) => {
+      console.error('[book_reader] failed to load book', fileId, e);
       if (!cancelled) {
         setState({
           status: 'error',
