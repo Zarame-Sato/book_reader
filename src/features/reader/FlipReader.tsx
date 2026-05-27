@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
+// page-flip's CSS sets `transform-style: preserve-3d` on the leaf elements.
+// Without it the library's internal rotateY transforms collapse to a 2D
+// mirror (scaleX) and pages render flipped.
+import 'page-flip/src/Style/stPageFlip.css';
 import { Spinner } from '@/components/Spinner';
 import type { BookSource } from '@/features/book-sources/BookSource';
 import type { ReadingDirection } from '@/lib/idb';
