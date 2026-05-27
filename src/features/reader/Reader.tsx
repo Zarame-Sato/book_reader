@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpenText, ChevronLeft } from 'lucide-react';
+import { AlertCircle, BookOpenText, ChevronLeft, RotateCw } from 'lucide-react';
+import { Button } from '@/components/Button';
 import { AnnotationOverlay } from '@/features/annotation/AnnotationOverlay';
 import { AnnotationToolbar } from '@/features/annotation/AnnotationToolbar';
 import { useAnnotationStore } from '@/features/annotation/annotationStore';
@@ -209,15 +210,33 @@ function ReaderLoading({ progress }: { progress: number }) {
 function ReaderError({ message }: { message: string }) {
   return (
     <div className="fixed inset-0 grid place-items-center bg-stone-100 px-6 text-center dark:bg-stone-950">
-      <div className="flex flex-col items-center gap-3">
-        <p className="max-w-sm text-sm text-stone-600 dark:text-stone-300">{message}</p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 text-sm text-accent-600 transition hover:text-accent-500 dark:text-accent-400"
-        >
-          <ChevronLeft size={16} />
-          本棚へ戻る
-        </Link>
+      <div className="flex max-w-md flex-col items-center gap-4">
+        <span className="grid size-14 place-items-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
+          <AlertCircle size={28} />
+        </span>
+        <h2 className="text-base font-semibold text-stone-800 dark:text-stone-100">
+          書籍を読み込めませんでした
+        </h2>
+        <p className="break-all rounded-lg bg-stone-200/70 px-3 py-2 text-xs leading-relaxed text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+          {message || 'unknown error'}
+        </p>
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => window.location.reload()}
+          >
+            <RotateCw size={14} />
+            再試行
+          </Button>
+          <Link
+            to="/"
+            className="inline-flex h-8 items-center gap-1 rounded-xl px-3 text-sm text-stone-500 transition hover:bg-stone-200 dark:hover:bg-stone-800"
+          >
+            <ChevronLeft size={14} />
+            本棚へ戻る
+          </Link>
+        </div>
       </div>
     </div>
   );
