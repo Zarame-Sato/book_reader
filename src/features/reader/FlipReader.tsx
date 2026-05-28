@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 // page-flip's CSS sets `transform-style: preserve-3d` on the leaf elements.
 // Without it the library's internal rotateY transforms collapse to a 2D
@@ -22,12 +22,33 @@ function distance(a: Touch, b: Touch): number {
 }
 
 /**
- * For right-bound books the page array is reversed: lib-index 0 is the last
- * book page. The mapping is symmetric — same formula both ways.
+ * Map a book-index to the lib's index, taking into account RTL reversal and
+ * padding (we pad odd-count books to an even libCount so page-flip doesn't
+ * mark the lone last page "hard" — that gave the cover a rigid flip).
  */
-function mapIndex(index: number, total: number, direction: ReadingDirection): number {
-  return direction === 'rtl' ? total - 1 - index : index;
+function bookToLib(
+  bookIndex: number,
+  libCount: number,
+  direction: ReadingDirection,
+): number {
+  return direction === 'rtl' ? libCount - 1 - bookIndex : bookIndex;
 }
+
+/** Reverse mapping. Returns null when the lib-index is a padding page. */
+function libToBook(
+  libIndex: number,
+  libCount: number,
+  pageCount: number,
+  direction: ReadingDirection,
+): number | null {
+  const candidate = direction === 'rtl' ? libCount - 1 - libIndex : libIndex;
+  return candidate >= 0 && candidate < pageCount ? candidate : null;
+}
+
+/** A blank padding page used to keep the page count even. */
+const BlankPage = forwardRef<HTMLDivElement>(function BlankPage(_, ref) {
+  return <div ref={ref} className="size-full bg-white" />;
+});
 
 interface FlipReaderProps {
   source: BookSource;
@@ -97,19 +118,22 @@ export function FlipReader({
     };
   }, [source]);
 
+  const libCount =
+    source.pageCount % 2 === 0 ? source.pageCount : source.pageCount + 1;
+
   // Sync external index changes (toolbar nav, slider) to the flipbook.
   useEffect(() => {
     if (index === currentIndex) return;
     const flip = bookRef.current?.pageFlip?.();
     if (flip && typeof flip.flip === 'function') {
       try {
-        flip.flip(mapIndex(index, source.pageCount, direction));
+        flip.flip(bookToLib(index, libCount, direction));
       } catch {
         /* ignore — flipbook may not be ready yet */
       }
     }
     setCurrentIndex(index);
-  }, [index, currentIndex, direction, source.pageCount]);
+  }, [index, currentIndex, direction, libCount]);
 
   // Prefetch pages around the current one so flips feel instant.
   useEffect(() => {
@@ -280,7 +304,7 @@ export function FlipReader({
               usePortrait: dimensions.isPortrait,
               showCover: false,
               maxShadowOpacity: 0.45,
-              startPage: mapIndex(index, source.pageCount, direction),
+              startPage: bookToLib(index, libCount, direction),
               showPageCorners: true,
               disableFlipByClick: false,
               useMouseEvents: true,
@@ -295,16 +319,30 @@ export function FlipReader({
                 height: dimensions.pageHeight,
               },
               onFlip: (e: { data: number }) => {
-                const bookIndex = mapIndex(e.data, source.pageCount, direction);
-                setCurrentIndex(bookIndex);
-                onPageChange(bookIndex);
+                const bookIndex = libToBook(
+                  e.data,
+                  libCount,
+                  source.pageCount,
+                  direction,
+                );
+                if (bookIndex !== null) {
+                  setCurrentIndex(bookIndex);
+                  onPageChange(bookIndex);
+                }
               },
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any)}
           >
-            {Array.from({ length: source.pageCount }, (_, libIndex) => {
-              // RTL books reverse the array so the flipbook flips right-to-left.
-              const bookIndex = mapIndex(libIndex, source.pageCount, direction);
+            {Array.from({ length: libCount }, (_, libIndex) => {
+              const bookIndex = libToBook(
+                libIndex,
+                libCount,
+                source.pageCount,
+                direction,
+              );
+              if (bookIndex === null) {
+                return <BlankPage key={`pad-${libIndex}`} />;
+              }
               return (
                 <FlipPage
                   key={libIndex}
